@@ -58,7 +58,7 @@ const Leads = () => {
       lastContact: '2024-01-15',
       nextFollowup: '2024-01-20',
       priority: 'high',
-      value: '$50,000'
+      value: '₹50,000'
     },
     {
       id: 2,
@@ -71,7 +71,7 @@ const Leads = () => {
       lastContact: '2024-01-18',
       nextFollowup: '2024-01-22',
       priority: 'medium',
-      value: '$25,000'
+      value: '₹25,000'
     },
     {
       id: 3,
@@ -84,7 +84,7 @@ const Leads = () => {
       lastContact: '2024-01-19',
       nextFollowup: '2024-01-25',
       priority: 'high',
-      value: '$75,000'
+      value: '₹75,000'
     },
     {
       id: 4,
@@ -97,7 +97,7 @@ const Leads = () => {
       lastContact: '2024-01-17',
       nextFollowup: '2024-01-23',
       priority: 'high',
-      value: '$100,000'
+      value: '₹100,000'
     }
   ]);
 

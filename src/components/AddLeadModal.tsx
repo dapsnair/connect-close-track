@@ -159,7 +159,7 @@ const AddLeadModal = ({ isOpen, onClose, onSave }: AddLeadModalProps) => {
               <Label htmlFor="value">Value</Label>
               <Input
                 id="value"
-                placeholder="e.g., $50,000"
+                placeholder="e.g., ₹50,000"
                 value={formData.value}
                 onChange={(e) => handleChange('value', e.target.value)}
               />
