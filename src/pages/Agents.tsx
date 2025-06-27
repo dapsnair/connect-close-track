@@ -1,13 +1,19 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Users, Phone, TrendingUp, Award, Mail, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 const Agents = () => {
-  const agents = [
+  const { toast } = useToast();
+  const [agents, setAgents] = useState([
     {
       id: 1,
       name: 'Sarah Johnson',
@@ -16,7 +22,7 @@ const Agents = () => {
       leads: 15,
       callsMade: 23,
       qualified: 8,
-      revenue: '$125,000',
+      revenue: '₹125,000',
       performance: 'excellent',
       recentActivity: [
         { type: 'call', description: 'Called John Smith - Tech Corp', time: '10:30 AM' },
@@ -32,7 +38,7 @@ const Agents = () => {
       leads: 12,
       callsMade: 18,
       qualified: 5,
-      revenue: '$87,500',
+      revenue: '₹87,500',
       performance: 'good',
       recentActivity: [
         { type: 'call', description: 'Called Lisa Garcia - Retail Plus', time: '9:15 AM' },
@@ -48,15 +54,78 @@ const Agents = () => {
       leads: 18,
       callsMade: 28,
       qualified: 12,
-      revenue: '$156,000',
+      revenue: '₹156,000',
       performance: 'excellent',
       recentActivity: [
         { type: 'meeting', description: 'Client meeting - Fortune Corp', time: '8:30 AM' },
         { type: 'call', description: 'Cold call to New Prospect', time: '1:20 PM' },
-        { type: 'deal', description: 'Closed deal worth $45,000', time: '5:00 PM' }
+        { type: 'deal', description: 'Closed deal worth ₹45,000', time: '5:00 PM' }
       ]
     }
-  ];
+  ]);
+
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [isAddAgentOpen, setIsAddAgentOpen] = useState(false);
+  const [isViewDetailsOpen, setIsViewDetailsOpen] = useState(false);
+  const [isAssignLeadOpen, setIsAssignLeadOpen] = useState(false);
+  const [newAgent, setNewAgent] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    performance: 'good'
+  });
+  const [leadAssignment, setLeadAssignment] = useState({
+    leadName: '',
+    company: '',
+    priority: 'medium'
+  });
+
+  const handleAddAgent = () => {
+    if (!newAgent.name || !newAgent.email || !newAgent.phone) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const agent = {
+      id: agents.length + 1,
+      ...newAgent,
+      leads: 0,
+      callsMade: 0,
+      qualified: 0,
+      revenue: '₹0',
+      recentActivity: []
+    };
+
+    setAgents([...agents, agent]);
+    setNewAgent({ name: '', email: '', phone: '', performance: 'good' });
+    setIsAddAgentOpen(false);
+    toast({
+      title: "Success",
+      description: "Agent added successfully!"
+    });
+  };
+
+  const handleAssignLead = () => {
+    if (!leadAssignment.leadName || !leadAssignment.company) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    toast({
+      title: "Success",
+      description: `Lead "${leadAssignment.leadName}" assigned to ${selectedAgent?.name}!`
+    });
+    setLeadAssignment({ leadName: '', company: '', priority: 'medium' });
+    setIsAssignLeadOpen(false);
+  };
 
   const getPerformanceBadge = (performance: string) => {
     return (
@@ -84,10 +153,66 @@ const Agents = () => {
           <h1 className="text-3xl font-bold text-gray-900">Sales Agents</h1>
           <p className="text-gray-600 mt-1">Manage your sales team performance</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          <Users className="w-4 h-4 mr-2" />
-          Add Agent
-        </Button>
+        <Dialog open={isAddAgentOpen} onOpenChange={setIsAddAgentOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Users className="w-4 h-4 mr-2" />
+              Add Agent
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Agent</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  placeholder="Enter agent name"
+                  value={newAgent.name}
+                  onChange={(e) => setNewAgent({...newAgent, name: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="agent@company.com"
+                  value={newAgent.email}
+                  onChange={(e) => setNewAgent({...newAgent, email: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  placeholder="+1 (555) 123-4567"
+                  value={newAgent.phone}
+                  onChange={(e) => setNewAgent({...newAgent, phone: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Performance Level</Label>
+                <Select value={newAgent.performance} onValueChange={(value) => setNewAgent({...newAgent, performance: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="excellent">Excellent</SelectItem>
+                    <SelectItem value="good">Good</SelectItem>
+                    <SelectItem value="average">Average</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button onClick={handleAddAgent} className="flex-1">Add Agent</Button>
+                <Button variant="outline" onClick={() => setIsAddAgentOpen(false)} className="flex-1">Cancel</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -151,12 +276,115 @@ const Agents = () => {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <Button variant="outline" size="sm" className="flex-1">
-                  View Details
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1">
-                  Assign Lead
-                </Button>
+                <Dialog open={isViewDetailsOpen} onOpenChange={setIsViewDetailsOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => setSelectedAgent(agent)}
+                    >
+                      View Details
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Agent Details - {selectedAgent?.name}</DialogTitle>
+                    </DialogHeader>
+                    {selectedAgent && (
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-2 gap-6">
+                          <div>
+                            <h3 className="font-semibold mb-2">Contact Information</h3>
+                            <div className="space-y-1 text-sm">
+                              <p><span className="text-gray-500">Email:</span> {selectedAgent.email}</p>
+                              <p><span className="text-gray-500">Phone:</span> {selectedAgent.phone}</p>
+                              <p><span className="text-gray-500">Performance:</span> {selectedAgent.performance}</p>
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="font-semibold mb-2">Performance Metrics</h3>
+                            <div className="space-y-1 text-sm">
+                              <p><span className="text-gray-500">Active Leads:</span> {selectedAgent.leads}</p>
+                              <p><span className="text-gray-500">Calls Made:</span> {selectedAgent.callsMade}</p>
+                              <p><span className="text-gray-500">Qualified:</span> {selectedAgent.qualified}</p>
+                              <p><span className="text-gray-500">Revenue:</span> {selectedAgent.revenue}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold mb-2">Recent Activity</h3>
+                          <div className="space-y-2">
+                            {selectedAgent.recentActivity.map((activity, index) => (
+                              <div key={index} className="flex items-start gap-2 text-sm p-2 bg-gray-50 rounded">
+                                {getActivityIcon(activity.type)}
+                                <div className="flex-1">
+                                  <p className="text-gray-700">{activity.description}</p>
+                                  <p className="text-gray-500 text-xs">{activity.time}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={isAssignLeadOpen} onOpenChange={setIsAssignLeadOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => setSelectedAgent(agent)}
+                    >
+                      Assign Lead
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Assign Lead to {selectedAgent?.name}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="leadName">Lead Name</Label>
+                        <Input
+                          id="leadName"
+                          placeholder="Enter lead name"
+                          value={leadAssignment.leadName}
+                          onChange={(e) => setLeadAssignment({...leadAssignment, leadName: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="company">Company</Label>
+                        <Input
+                          id="company"
+                          placeholder="Enter company name"
+                          value={leadAssignment.company}
+                          onChange={(e) => setLeadAssignment({...leadAssignment, company: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <Label>Priority</Label>
+                        <Select value={leadAssignment.priority} onValueChange={(value) => setLeadAssignment({...leadAssignment, priority: value})}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="high">High</SelectItem>
+                            <SelectItem value="medium">Medium</SelectItem>
+                            <SelectItem value="low">Low</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex gap-2 pt-4">
+                        <Button onClick={handleAssignLead} className="flex-1">Assign Lead</Button>
+                        <Button variant="outline" onClick={() => setIsAssignLeadOpen(false)} className="flex-1">Cancel</Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
           </Card>
