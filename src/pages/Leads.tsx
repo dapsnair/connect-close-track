@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, Plus, Filter, Phone, Mail, Calendar, User, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,10 +5,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import AddLeadModal from '@/components/AddLeadModal';
 import EditLeadModal from '@/components/EditLeadModal';
 import CallNotesModal from '@/components/CallNotesModal';
+import ScheduleModal from '@/components/ScheduleModal';
 
 export interface Lead {
   id: number;
@@ -33,6 +43,8 @@ const Leads = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [callNotesLead, setCallNotesLead] = useState<Lead | null>(null);
+  const [schedulingLead, setSchedulingLead] = useState<Lead | null>(null);
+  const [deleteConfirmLead, setDeleteConfirmLead] = useState<Lead | null>(null);
 
   const [leads, setLeads] = useState<Lead[]>([
     {
@@ -116,6 +128,7 @@ const Leads = () => {
       title: "Lead Deleted",
       description: `${leadToDelete?.name} has been deleted.`,
     });
+    setDeleteConfirmLead(null);
   };
 
   const handleCall = (lead: Lead) => {
@@ -123,9 +136,19 @@ const Leads = () => {
   };
 
   const handleSchedule = (lead: Lead) => {
+    setSchedulingLead(lead);
+  };
+
+  const handleScheduleSave = (leadId: number, scheduleData: any) => {
+    const updatedLeads = leads.map(lead => 
+      lead.id === leadId 
+        ? { ...lead, nextFollowup: scheduleData.date }
+        : lead
+    );
+    setLeads(updatedLeads);
     toast({
-      title: "Schedule Feature",
-      description: `Schedule functionality for ${lead.name} would be implemented here.`,
+      title: "Meeting Scheduled",
+      description: `Meeting scheduled for ${scheduleData.date} at ${scheduleData.time}.`,
     });
   };
 
@@ -245,7 +268,7 @@ const Leads = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleDeleteLead(lead.id)}
+                  onClick={() => setDeleteConfirmLead(lead)}
                   className="p-1 h-8 w-8 text-red-600 hover:text-red-700"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -328,6 +351,37 @@ const Leads = () => {
           onSave={handleCallNotesSave}
         />
       )}
+
+      {schedulingLead && (
+        <ScheduleModal
+          lead={schedulingLead}
+          isOpen={!!schedulingLead}
+          onClose={() => setSchedulingLead(null)}
+          onSave={handleScheduleSave}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirmLead} onOpenChange={() => setDeleteConfirmLead(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the lead "{deleteConfirmLead?.name}" from {deleteConfirmLead?.company}. 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteConfirmLead && handleDeleteLead(deleteConfirmLead.id)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
