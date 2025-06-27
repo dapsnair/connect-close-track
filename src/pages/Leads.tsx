@@ -1,17 +1,40 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Filter, Phone, Mail, Calendar, User } from 'lucide-react';
+import { Search, Plus, Filter, Phone, Mail, Calendar, User, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import AddLeadModal from '@/components/AddLeadModal';
+import EditLeadModal from '@/components/EditLeadModal';
+import CallNotesModal from '@/components/CallNotesModal';
+
+export interface Lead {
+  id: number;
+  name: string;
+  email: string;
+  company: string;
+  phone: string;
+  status: 'new' | 'contacted' | 'qualified' | 'proposal' | 'closed';
+  agent: string;
+  lastContact: string;
+  nextFollowup: string;
+  priority: 'high' | 'medium' | 'low';
+  value: string;
+  notes?: string;
+}
 
 const Leads = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [callNotesLead, setCallNotesLead] = useState<Lead | null>(null);
 
-  const leads = [
+  const [leads, setLeads] = useState<Lead[]>([
     {
       id: 1,
       name: 'John Smith',
@@ -64,7 +87,60 @@ const Leads = () => {
       priority: 'high',
       value: '$100,000'
     }
-  ];
+  ]);
+
+  const handleAddLead = (newLead: Omit<Lead, 'id'>) => {
+    const lead: Lead = {
+      ...newLead,
+      id: Math.max(...leads.map(l => l.id), 0) + 1
+    };
+    setLeads([...leads, lead]);
+    toast({
+      title: "Lead Added",
+      description: `${newLead.name} has been added successfully.`,
+    });
+  };
+
+  const handleEditLead = (updatedLead: Lead) => {
+    setLeads(leads.map(lead => lead.id === updatedLead.id ? updatedLead : lead));
+    toast({
+      title: "Lead Updated",
+      description: `${updatedLead.name} has been updated successfully.`,
+    });
+  };
+
+  const handleDeleteLead = (leadId: number) => {
+    const leadToDelete = leads.find(lead => lead.id === leadId);
+    setLeads(leads.filter(lead => lead.id !== leadId));
+    toast({
+      title: "Lead Deleted",
+      description: `${leadToDelete?.name} has been deleted.`,
+    });
+  };
+
+  const handleCall = (lead: Lead) => {
+    setCallNotesLead(lead);
+  };
+
+  const handleSchedule = (lead: Lead) => {
+    toast({
+      title: "Schedule Feature",
+      description: `Schedule functionality for ${lead.name} would be implemented here.`,
+    });
+  };
+
+  const handleCallNotesSave = (leadId: number, notes: string) => {
+    const updatedLeads = leads.map(lead => 
+      lead.id === leadId 
+        ? { ...lead, notes, lastContact: new Date().toISOString().split('T')[0] }
+        : lead
+    );
+    setLeads(updatedLeads);
+    toast({
+      title: "Call Notes Saved",
+      description: "Call notes have been saved successfully.",
+    });
+  };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -102,7 +178,10 @@ const Leads = () => {
           <h1 className="text-3xl font-bold text-gray-900">Leads</h1>
           <p className="text-gray-600 mt-1">Manage and track your sales leads</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700"
+          onClick={() => setIsAddModalOpen(true)}
+        >
           <Plus className="w-4 h-4 mr-2" />
           Add Lead
         </Button>
@@ -142,7 +221,7 @@ const Leads = () => {
       {/* Leads Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredLeads.map((lead) => (
-          <Card key={lead.id} className="hover:shadow-lg transition-shadow duration-300 cursor-pointer">
+          <Card key={lead.id} className="hover:shadow-lg transition-shadow duration-300">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div>
@@ -153,6 +232,24 @@ const Leads = () => {
                   {getStatusBadge(lead.status)}
                   {getPriorityBadge(lead.priority)}
                 </div>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setEditingLead(lead)}
+                  className="p-1 h-8 w-8"
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDeleteLead(lead.id)}
+                  className="p-1 h-8 w-8 text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -183,11 +280,21 @@ const Leads = () => {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleCall(lead)}
+                >
                   <Phone className="w-4 h-4 mr-1" />
                   Call
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleSchedule(lead)}
+                >
                   <Calendar className="w-4 h-4 mr-1" />
                   Schedule
                 </Button>
@@ -196,6 +303,31 @@ const Leads = () => {
           </Card>
         ))}
       </div>
+
+      {/* Modals */}
+      <AddLeadModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSave={handleAddLead}
+      />
+
+      {editingLead && (
+        <EditLeadModal
+          lead={editingLead}
+          isOpen={!!editingLead}
+          onClose={() => setEditingLead(null)}
+          onSave={handleEditLead}
+        />
+      )}
+
+      {callNotesLead && (
+        <CallNotesModal
+          lead={callNotesLead}
+          isOpen={!!callNotesLead}
+          onClose={() => setCallNotesLead(null)}
+          onSave={handleCallNotesSave}
+        />
+      )}
     </div>
   );
 };
