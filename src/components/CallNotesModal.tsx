@@ -7,15 +7,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Lead } from '@/pages/Leads';
 
 interface CallNotesModalProps {
+  lead: Lead;
   isOpen: boolean;
   onClose: () => void;
-  leadName: string;
-  leadCompany: string;
+  onSave: (leadId: number, notes: string) => void;
 }
 
-const CallNotesModal = ({ isOpen, onClose, leadName, leadCompany }: CallNotesModalProps) => {
+const CallNotesModal = ({ lead, isOpen, onClose, onSave }: CallNotesModalProps) => {
   const [callNotes, setCallNotes] = useState('');
   const [followUpDate, setFollowUpDate] = useState('');
   const [followUpTime, setFollowUpTime] = useState('');
@@ -23,7 +24,6 @@ const CallNotesModal = ({ isOpen, onClose, leadName, leadCompany }: CallNotesMod
   const [nextAction, setNextAction] = useState('');
 
   const handleSave = () => {
-    // Here you would typically save the call notes to your backend
     console.log('Saving call notes:', {
       callNotes,
       followUpDate,
@@ -31,6 +31,7 @@ const CallNotesModal = ({ isOpen, onClose, leadName, leadCompany }: CallNotesMod
       callOutcome,
       nextAction
     });
+    onSave(lead.id, callNotes);
     onClose();
   };
 
@@ -43,7 +44,7 @@ const CallNotesModal = ({ isOpen, onClose, leadName, leadCompany }: CallNotesMod
           <div>
             <CardTitle className="text-xl">Call Notes</CardTitle>
             <p className="text-sm text-gray-600 mt-1">
-              {leadName} - {leadCompany}
+              {lead.name} - {lead.company}
             </p>
           </div>
           <Button variant="ghost" size="sm" onClick={onClose}>
