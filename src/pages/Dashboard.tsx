@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Calendar, Users, Phone, TrendingUp, Clock, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,20 +21,74 @@ interface Lead {
   value: string;
   notes?: string;
 }
-
 const Dashboard = () => {
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [callNotesLead, setCallNotesLead] = useState<Lead | null>(null);
 
   // All leads with their follow-up dates
-  const [allLeads, setAllLeads] = useState<Lead[]>([
-    { id: 1, name: 'John Smith', company: 'Tech Corp', agent: 'Sarah Johnson', priority: 'high', email: 'john@techcorp.com', phone: '+1 (555) 123-4567', status: 'new' as const, lastContact: '2024-01-15', nextFollowup: new Date().toISOString().split('T')[0], value: '₹50,000' },
-    { id: 2, name: 'Emma Wilson', company: 'Design Studio', agent: 'Mike Davis', priority: 'medium', email: 'emma@designstudio.com', phone: '+1 (555) 234-5678', status: 'contacted' as const, lastContact: '2024-01-18', nextFollowup: new Date().toISOString().split('T')[0], value: '₹25,000' },
-    { id: 3, name: 'Robert Brown', company: 'Marketing Inc', agent: 'Sarah Johnson', priority: 'low', email: 'robert@marketing.com', phone: '+1 (555) 345-6789', status: 'qualified' as const, lastContact: '2024-01-19', nextFollowup: new Date().toISOString().split('T')[0], value: '₹75,000' },
-    { id: 4, name: 'Lisa Garcia', company: 'Retail Plus', agent: 'Mike Davis', priority: 'high', email: 'lisa@retailplus.com', phone: '+1 (555) 456-7890', status: 'proposal' as const, lastContact: '2024-01-17', nextFollowup: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], value: '₹100,000' },
-    { id: 5, name: 'David Lee', company: 'Finance Co', agent: 'Sarah Johnson', priority: 'medium', email: 'david@financeco.com', phone: '+1 (555) 567-8901', status: 'contacted' as const, lastContact: '2024-01-16', nextFollowup: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], value: '₹60,000' },
-  ]);
-
+  const [allLeads, setAllLeads] = useState<Lead[]>([{
+    id: 1,
+    name: 'John Smith',
+    company: 'Tech Corp',
+    agent: 'Sarah Johnson',
+    priority: 'high',
+    email: 'john@techcorp.com',
+    phone: '+1 (555) 123-4567',
+    status: 'new' as const,
+    lastContact: '2024-01-15',
+    nextFollowup: new Date().toISOString().split('T')[0],
+    value: '₹50,000'
+  }, {
+    id: 2,
+    name: 'Emma Wilson',
+    company: 'Design Studio',
+    agent: 'Mike Davis',
+    priority: 'medium',
+    email: 'emma@designstudio.com',
+    phone: '+1 (555) 234-5678',
+    status: 'contacted' as const,
+    lastContact: '2024-01-18',
+    nextFollowup: new Date().toISOString().split('T')[0],
+    value: '₹25,000'
+  }, {
+    id: 3,
+    name: 'Robert Brown',
+    company: 'Marketing Inc',
+    agent: 'Sarah Johnson',
+    priority: 'low',
+    email: 'robert@marketing.com',
+    phone: '+1 (555) 345-6789',
+    status: 'qualified' as const,
+    lastContact: '2024-01-19',
+    nextFollowup: new Date().toISOString().split('T')[0],
+    value: '₹75,000'
+  }, {
+    id: 4,
+    name: 'Lisa Garcia',
+    company: 'Retail Plus',
+    agent: 'Mike Davis',
+    priority: 'high',
+    email: 'lisa@retailplus.com',
+    phone: '+1 (555) 456-7890',
+    status: 'proposal' as const,
+    lastContact: '2024-01-17',
+    nextFollowup: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    value: '₹100,000'
+  }, {
+    id: 5,
+    name: 'David Lee',
+    company: 'Finance Co',
+    agent: 'Sarah Johnson',
+    priority: 'medium',
+    email: 'david@financeco.com',
+    phone: '+1 (555) 567-8901',
+    status: 'contacted' as const,
+    lastContact: '2024-01-16',
+    nextFollowup: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    value: '₹60,000'
+  }]);
   const today = new Date().toISOString().split('T')[0];
 
   // Filter leads for today's follow-ups
@@ -50,14 +103,31 @@ const Dashboard = () => {
     ...lead,
     daysOverdue: Math.floor((new Date(today).getTime() - new Date(lead.nextFollowup).getTime()) / (1000 * 60 * 60 * 24))
   }));
-
-  const stats = [
-    { title: 'Total Leads', value: allLeads.length.toString(), icon: Users, change: '+12%', color: 'text-blue-600' },
-    { title: 'Today\'s Follow-ups', value: todayFollowups.length.toString(), icon: Clock, change: '+3', color: 'text-orange-600' },
-    { title: 'Calls Made', value: '23', icon: Phone, change: '+8', color: 'text-green-600' },
-    { title: 'Qualified Leads', value: '12', icon: CheckCircle, change: '+5', color: 'text-purple-600' },
-  ];
-
+  const stats = [{
+    title: 'Total Leads',
+    value: allLeads.length.toString(),
+    icon: Users,
+    change: '+12%',
+    color: 'text-blue-600'
+  }, {
+    title: 'Today\'s Follow-ups',
+    value: todayFollowups.length.toString(),
+    icon: Clock,
+    change: '+3',
+    color: 'text-orange-600'
+  }, {
+    title: 'Calls Made',
+    value: '23',
+    icon: Phone,
+    change: '+8',
+    color: 'text-green-600'
+  }, {
+    title: 'Qualified Leads',
+    value: '12',
+    icon: CheckCircle,
+    change: '+5',
+    color: 'text-purple-600'
+  }];
   const handleCall = (followup: any) => {
     // Convert followup to Lead format for the modal
     const lead: Lead = {
@@ -76,46 +146,37 @@ const Dashboard = () => {
     };
     setCallNotesLead(lead);
   };
-
   const handleCallNotesSave = (leadId: number, notes: string, nextFollowupDate?: string) => {
     console.log('Call notes saved for lead:', leadId, notes, 'Next followup:', nextFollowupDate);
-    
+
     // Update the lead with new follow-up date if provided
     if (nextFollowupDate) {
-      setAllLeads(prevLeads => 
-        prevLeads.map(lead => 
-          lead.id === leadId 
-            ? { ...lead, nextFollowup: nextFollowupDate, lastContact: today, notes: notes }
-            : lead
-        )
-      );
+      setAllLeads(prevLeads => prevLeads.map(lead => lead.id === leadId ? {
+        ...lead,
+        nextFollowup: nextFollowupDate,
+        lastContact: today,
+        notes: notes
+      } : lead));
     }
-    
     toast({
       title: "Call Notes Saved",
-      description: "Call notes have been saved successfully.",
+      description: "Call notes have been saved successfully."
     });
   };
-
-  return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+  return <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">Welcome back! Here's your sales overview.</p>
         </div>
         <div className="flex gap-3">
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <Phone className="w-4 h-4 mr-2" />
-            Make Call
-          </Button>
+          
         </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
+        {stats.map((stat, index) => <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -128,8 +189,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </CardContent>
-          </Card>
-        ))}
+          </Card>)}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -143,11 +203,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {todayFollowups.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">No follow-ups scheduled for today</p>
-              ) : (
-                todayFollowups.map((followup) => (
-                  <div key={followup.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              {todayFollowups.length === 0 ? <p className="text-gray-500 text-center py-4">No follow-ups scheduled for today</p> : todayFollowups.map(followup => <div key={followup.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">{followup.name}</h3>
                       <p className="text-sm text-gray-600">{followup.company}</p>
@@ -161,19 +217,12 @@ const Dashboard = () => {
                           {followup.priority}
                         </Badge>
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleCall(followup)}
-                        className="ml-2"
-                      >
+                      <Button variant="outline" size="sm" onClick={() => handleCall(followup)} className="ml-2">
                         <Phone className="w-4 h-4 mr-1" />
                         Call
                       </Button>
                     </div>
-                  </div>
-                ))
-              )}
+                  </div>)}
             </div>
           </CardContent>
         </Card>
@@ -188,11 +237,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {overdueFollowups.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">No overdue follow-ups</p>
-              ) : (
-                overdueFollowups.map((followup) => (
-                  <div key={followup.id} className="flex items-center justify-between p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+              {overdueFollowups.length === 0 ? <p className="text-gray-500 text-center py-4">No overdue follow-ups</p> : overdueFollowups.map(followup => <div key={followup.id} className="flex items-center justify-between p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">{followup.name}</h3>
                       <p className="text-sm text-gray-600">{followup.company}</p>
@@ -206,35 +251,19 @@ const Dashboard = () => {
                           {followup.priority}
                         </Badge>
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleCall(followup)}
-                        className="ml-2 border-red-200 hover:bg-red-50"
-                      >
+                      <Button variant="outline" size="sm" onClick={() => handleCall(followup)} className="ml-2 border-red-200 hover:bg-red-50">
                         <Phone className="w-4 h-4 mr-1" />
                         Call
                       </Button>
                     </div>
-                  </div>
-                ))
-              )}
+                  </div>)}
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Call Notes Modal */}
-      {callNotesLead && (
-        <CallNotesModal
-          lead={callNotesLead}
-          isOpen={!!callNotesLead}
-          onClose={() => setCallNotesLead(null)}
-          onSave={handleCallNotesSave}
-        />
-      )}
-    </div>
-  );
+      {callNotesLead && <CallNotesModal lead={callNotesLead} isOpen={!!callNotesLead} onClose={() => setCallNotesLead(null)} onSave={handleCallNotesSave} />}
+    </div>;
 };
-
 export default Dashboard;
