@@ -27,20 +27,33 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [callNotesLead, setCallNotesLead] = useState<Lead | null>(null);
 
-  const todayFollowups = [
-    { id: 1, name: 'John Smith', company: 'Tech Corp', time: '10:00 AM', agent: 'Sarah Johnson', priority: 'high', email: 'john@techcorp.com', phone: '+1 (555) 123-4567', status: 'new' as const, lastContact: '2024-01-15', nextFollowup: '2024-01-20', value: '₹50,000' },
-    { id: 2, name: 'Emma Wilson', company: 'Design Studio', time: '2:30 PM', agent: 'Mike Davis', priority: 'medium', email: 'emma@designstudio.com', phone: '+1 (555) 234-5678', status: 'contacted' as const, lastContact: '2024-01-18', nextFollowup: '2024-01-22', value: '₹25,000' },
-    { id: 3, name: 'Robert Brown', company: 'Marketing Inc', time: '4:00 PM', agent: 'Sarah Johnson', priority: 'low', email: 'robert@marketing.com', phone: '+1 (555) 345-6789', status: 'qualified' as const, lastContact: '2024-01-19', nextFollowup: '2024-01-25', value: '₹75,000' },
-  ];
+  // All leads with their follow-up dates
+  const [allLeads, setAllLeads] = useState<Lead[]>([
+    { id: 1, name: 'John Smith', company: 'Tech Corp', agent: 'Sarah Johnson', priority: 'high', email: 'john@techcorp.com', phone: '+1 (555) 123-4567', status: 'new' as const, lastContact: '2024-01-15', nextFollowup: new Date().toISOString().split('T')[0], value: '₹50,000' },
+    { id: 2, name: 'Emma Wilson', company: 'Design Studio', agent: 'Mike Davis', priority: 'medium', email: 'emma@designstudio.com', phone: '+1 (555) 234-5678', status: 'contacted' as const, lastContact: '2024-01-18', nextFollowup: new Date().toISOString().split('T')[0], value: '₹25,000' },
+    { id: 3, name: 'Robert Brown', company: 'Marketing Inc', agent: 'Sarah Johnson', priority: 'low', email: 'robert@marketing.com', phone: '+1 (555) 345-6789', status: 'qualified' as const, lastContact: '2024-01-19', nextFollowup: new Date().toISOString().split('T')[0], value: '₹75,000' },
+    { id: 4, name: 'Lisa Garcia', company: 'Retail Plus', agent: 'Mike Davis', priority: 'high', email: 'lisa@retailplus.com', phone: '+1 (555) 456-7890', status: 'proposal' as const, lastContact: '2024-01-17', nextFollowup: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], value: '₹100,000' },
+    { id: 5, name: 'David Lee', company: 'Finance Co', agent: 'Sarah Johnson', priority: 'medium', email: 'david@financeco.com', phone: '+1 (555) 567-8901', status: 'contacted' as const, lastContact: '2024-01-16', nextFollowup: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], value: '₹60,000' },
+  ]);
 
-  const overdueFollowups = [
-    { id: 4, name: 'Lisa Garcia', company: 'Retail Plus', daysOverdue: 2, agent: 'Mike Davis', priority: 'high', email: 'lisa@retailplus.com', phone: '+1 (555) 456-7890', status: 'proposal' as const, lastContact: '2024-01-17', nextFollowup: '2024-01-23', value: '₹100,000' },
-    { id: 5, name: 'David Lee', company: 'Finance Co', daysOverdue: 1, agent: 'Sarah Johnson', priority: 'medium', email: 'david@financeco.com', phone: '+1 (555) 567-8901', status: 'contacted' as const, lastContact: '2024-01-16', nextFollowup: '2024-01-24', value: '₹60,000' },
-  ];
+  const today = new Date().toISOString().split('T')[0];
+
+  // Filter leads for today's follow-ups
+  const todayFollowups = allLeads.filter(lead => lead.nextFollowup === today);
+
+  // Filter leads for overdue follow-ups
+  const overdueFollowups = allLeads.filter(lead => {
+    const followupDate = new Date(lead.nextFollowup);
+    const todayDate = new Date(today);
+    return followupDate < todayDate;
+  }).map(lead => ({
+    ...lead,
+    daysOverdue: Math.floor((new Date(today).getTime() - new Date(lead.nextFollowup).getTime()) / (1000 * 60 * 60 * 24))
+  }));
 
   const stats = [
-    { title: 'Total Leads', value: '247', icon: Users, change: '+12%', color: 'text-blue-600' },
-    { title: 'Today\'s Follow-ups', value: '8', icon: Clock, change: '+3', color: 'text-orange-600' },
+    { title: 'Total Leads', value: allLeads.length.toString(), icon: Users, change: '+12%', color: 'text-blue-600' },
+    { title: 'Today\'s Follow-ups', value: todayFollowups.length.toString(), icon: Clock, change: '+3', color: 'text-orange-600' },
     { title: 'Calls Made', value: '23', icon: Phone, change: '+8', color: 'text-green-600' },
     { title: 'Qualified Leads', value: '12', icon: CheckCircle, change: '+5', color: 'text-purple-600' },
   ];
@@ -64,9 +77,20 @@ const Dashboard = () => {
     setCallNotesLead(lead);
   };
 
-  const handleCallNotesSave = (leadId: number, notes: string) => {
-    // In a real app, this would update the backend
-    console.log('Call notes saved for lead:', leadId, notes);
+  const handleCallNotesSave = (leadId: number, notes: string, nextFollowupDate?: string) => {
+    console.log('Call notes saved for lead:', leadId, notes, 'Next followup:', nextFollowupDate);
+    
+    // Update the lead with new follow-up date if provided
+    if (nextFollowupDate) {
+      setAllLeads(prevLeads => 
+        prevLeads.map(lead => 
+          lead.id === leadId 
+            ? { ...lead, nextFollowup: nextFollowupDate, lastContact: today, notes: notes }
+            : lead
+        )
+      );
+    }
+    
     toast({
       title: "Call Notes Saved",
       description: "Call notes have been saved successfully.",
@@ -114,37 +138,42 @@ const Dashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-blue-600" />
-              Today's Follow-ups
+              Today's Follow-ups ({todayFollowups.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {todayFollowups.map((followup) => (
-                <div key={followup.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{followup.name}</h3>
-                    <p className="text-sm text-gray-600">{followup.company}</p>
-                    <p className="text-sm text-gray-500">Agent: {followup.agent}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="font-medium text-gray-900">{followup.time}</p>
-                      <Badge variant={followup.priority === 'high' ? 'destructive' : followup.priority === 'medium' ? 'default' : 'secondary'}>
-                        {followup.priority}
-                      </Badge>
+              {todayFollowups.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">No follow-ups scheduled for today</p>
+              ) : (
+                todayFollowups.map((followup) => (
+                  <div key={followup.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">{followup.name}</h3>
+                      <p className="text-sm text-gray-600">{followup.company}</p>
+                      <p className="text-sm text-gray-500">Agent: {followup.agent}</p>
+                      <p className="text-sm text-gray-500">Value: {followup.value}</p>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleCall(followup)}
-                      className="ml-2"
-                    >
-                      <Phone className="w-4 h-4 mr-1" />
-                      Call
-                    </Button>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="font-medium text-gray-900">Today</p>
+                        <Badge variant={followup.priority === 'high' ? 'destructive' : followup.priority === 'medium' ? 'default' : 'secondary'}>
+                          {followup.priority}
+                        </Badge>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleCall(followup)}
+                        className="ml-2"
+                      >
+                        <Phone className="w-4 h-4 mr-1" />
+                        Call
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -154,37 +183,42 @@ const Dashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-red-600" />
-              Overdue Follow-ups
+              Overdue Follow-ups ({overdueFollowups.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {overdueFollowups.map((followup) => (
-                <div key={followup.id} className="flex items-center justify-between p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{followup.name}</h3>
-                    <p className="text-sm text-gray-600">{followup.company}</p>
-                    <p className="text-sm text-gray-500">Agent: {followup.agent}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="font-medium text-red-600">{followup.daysOverdue} days overdue</p>
-                      <Badge variant={followup.priority === 'high' ? 'destructive' : 'default'}>
-                        {followup.priority}
-                      </Badge>
+              {overdueFollowups.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">No overdue follow-ups</p>
+              ) : (
+                overdueFollowups.map((followup) => (
+                  <div key={followup.id} className="flex items-center justify-between p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">{followup.name}</h3>
+                      <p className="text-sm text-gray-600">{followup.company}</p>
+                      <p className="text-sm text-gray-500">Agent: {followup.agent}</p>
+                      <p className="text-sm text-gray-500">Value: {followup.value}</p>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleCall(followup)}
-                      className="ml-2 border-red-200 hover:bg-red-50"
-                    >
-                      <Phone className="w-4 h-4 mr-1" />
-                      Call
-                    </Button>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="font-medium text-red-600">{followup.daysOverdue} days overdue</p>
+                        <Badge variant={followup.priority === 'high' ? 'destructive' : 'default'}>
+                          {followup.priority}
+                        </Badge>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleCall(followup)}
+                        className="ml-2 border-red-200 hover:bg-red-50"
+                      >
+                        <Phone className="w-4 h-4 mr-1" />
+                        Call
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>

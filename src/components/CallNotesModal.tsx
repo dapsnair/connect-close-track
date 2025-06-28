@@ -7,13 +7,27 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Lead } from '@/pages/Leads';
+
+interface Lead {
+  id: number;
+  name: string;
+  email: string;
+  company: string;
+  phone: string;
+  status: 'new' | 'contacted' | 'qualified' | 'proposal' | 'closed';
+  agent: string;
+  lastContact: string;
+  nextFollowup: string;
+  priority: 'high' | 'medium' | 'low';
+  value: string;
+  notes?: string;
+}
 
 interface CallNotesModalProps {
   lead: Lead;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (leadId: number, notes: string) => void;
+  onSave: (leadId: number, notes: string, nextFollowupDate?: string) => void;
 }
 
 const CallNotesModal = ({ lead, isOpen, onClose, onSave }: CallNotesModalProps) => {
@@ -31,7 +45,7 @@ const CallNotesModal = ({ lead, isOpen, onClose, onSave }: CallNotesModalProps) 
       callOutcome,
       nextAction
     });
-    onSave(lead.id, callNotes);
+    onSave(lead.id, callNotes, followUpDate);
     onClose();
   };
 
