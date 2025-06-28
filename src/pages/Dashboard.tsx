@@ -20,7 +20,9 @@ interface Lead {
   priority: 'high' | 'medium' | 'low';
   value: string;
   notes?: string;
+  callsMade?: number;
 }
+
 const Dashboard = () => {
   const {
     toast
@@ -39,7 +41,8 @@ const Dashboard = () => {
     status: 'new' as const,
     lastContact: '2024-01-15',
     nextFollowup: new Date().toISOString().split('T')[0],
-    value: '₹50,000'
+    value: '₹50,000',
+    callsMade: 2
   }, {
     id: 2,
     name: 'Emma Wilson',
@@ -51,7 +54,8 @@ const Dashboard = () => {
     status: 'contacted' as const,
     lastContact: '2024-01-18',
     nextFollowup: new Date().toISOString().split('T')[0],
-    value: '₹25,000'
+    value: '₹25,000',
+    callsMade: 1
   }, {
     id: 3,
     name: 'Robert Brown',
@@ -63,7 +67,8 @@ const Dashboard = () => {
     status: 'qualified' as const,
     lastContact: '2024-01-19',
     nextFollowup: new Date().toISOString().split('T')[0],
-    value: '₹75,000'
+    value: '₹75,000',
+    callsMade: 3
   }, {
     id: 4,
     name: 'Lisa Garcia',
@@ -75,7 +80,8 @@ const Dashboard = () => {
     status: 'proposal' as const,
     lastContact: '2024-01-17',
     nextFollowup: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    value: '₹100,000'
+    value: '₹100,000',
+    callsMade: 4
   }, {
     id: 5,
     name: 'David Lee',
@@ -87,11 +93,12 @@ const Dashboard = () => {
     status: 'contacted' as const,
     lastContact: '2024-01-16',
     nextFollowup: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    value: '₹60,000'
+    value: '₹60,000',
+    callsMade: 2
   }]);
   const today = new Date().toISOString().split('T')[0];
 
-  // Filter leads for today's follow-ups
+  // Filter leads for today's follow-ups (excluding overdue ones)
   const todayFollowups = allLeads.filter(lead => lead.nextFollowup === today);
 
   // Filter leads for overdue follow-ups
@@ -103,6 +110,11 @@ const Dashboard = () => {
     ...lead,
     daysOverdue: Math.floor((new Date(today).getTime() - new Date(lead.nextFollowup).getTime()) / (1000 * 60 * 60 * 24))
   }));
+
+  // Calculate stats based on actual data
+  const qualifiedLeadsCount = allLeads.filter(lead => lead.status === 'qualified').length;
+  const totalCallsMade = allLeads.reduce((total, lead) => total + (lead.callsMade || 0), 0);
+
   const stats = [{
     title: 'Total Leads',
     value: allLeads.length.toString(),
@@ -117,13 +129,13 @@ const Dashboard = () => {
     color: 'text-orange-600'
   }, {
     title: 'Calls Made',
-    value: '23',
+    value: totalCallsMade.toString(),
     icon: Phone,
     change: '+8',
     color: 'text-green-600'
   }, {
     title: 'Qualified Leads',
-    value: '12',
+    value: qualifiedLeadsCount.toString(),
     icon: CheckCircle,
     change: '+5',
     color: 'text-purple-600'
@@ -142,22 +154,28 @@ const Dashboard = () => {
       nextFollowup: followup.nextFollowup,
       priority: followup.priority,
       value: followup.value,
-      notes: followup.notes
+      notes: followup.notes,
+      callsMade: followup.callsMade
     };
     setCallNotesLead(lead);
   };
   const handleCallNotesSave = (leadId: number, notes: string, nextFollowupDate?: string) => {
     console.log('Call notes saved for lead:', leadId, notes, 'Next followup:', nextFollowupDate);
 
-    // Update the lead with new follow-up date if provided
-    if (nextFollowupDate) {
-      setAllLeads(prevLeads => prevLeads.map(lead => lead.id === leadId ? {
-        ...lead,
-        nextFollowup: nextFollowupDate,
-        lastContact: today,
-        notes: notes
-      } : lead));
-    }
+    // Update the lead with new follow-up date if provided and increment calls made
+    setAllLeads(prevLeads => prevLeads.map(lead => {
+      if (lead.id === leadId) {
+        return {
+          ...lead,
+          nextFollowup: nextFollowupDate || lead.nextFollowup,
+          lastContact: today,
+          notes: notes,
+          callsMade: (lead.callsMade || 0) + 1
+        };
+      }
+      return lead;
+    }));
+
     toast({
       title: "Call Notes Saved",
       description: "Call notes have been saved successfully."
