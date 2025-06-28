@@ -1,20 +1,41 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Calendar, Users, Phone, TrendingUp, Clock, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import CallNotesModal from '@/components/CallNotesModal';
+import { useToast } from '@/hooks/use-toast';
+
+// Define Lead interface to match the one used in CallNotesModal
+interface Lead {
+  id: number;
+  name: string;
+  email: string;
+  company: string;
+  phone: string;
+  status: 'new' | 'contacted' | 'qualified' | 'proposal' | 'closed';
+  agent: string;
+  lastContact: string;
+  nextFollowup: string;
+  priority: 'high' | 'medium' | 'low';
+  value: string;
+  notes?: string;
+}
 
 const Dashboard = () => {
+  const { toast } = useToast();
+  const [callNotesLead, setCallNotesLead] = useState<Lead | null>(null);
+
   const todayFollowups = [
-    { id: 1, name: 'John Smith', company: 'Tech Corp', time: '10:00 AM', agent: 'Sarah Johnson', priority: 'high' },
-    { id: 2, name: 'Emma Wilson', company: 'Design Studio', time: '2:30 PM', agent: 'Mike Davis', priority: 'medium' },
-    { id: 3, name: 'Robert Brown', company: 'Marketing Inc', time: '4:00 PM', agent: 'Sarah Johnson', priority: 'low' },
+    { id: 1, name: 'John Smith', company: 'Tech Corp', time: '10:00 AM', agent: 'Sarah Johnson', priority: 'high', email: 'john@techcorp.com', phone: '+1 (555) 123-4567', status: 'new' as const, lastContact: '2024-01-15', nextFollowup: '2024-01-20', value: '₹50,000' },
+    { id: 2, name: 'Emma Wilson', company: 'Design Studio', time: '2:30 PM', agent: 'Mike Davis', priority: 'medium', email: 'emma@designstudio.com', phone: '+1 (555) 234-5678', status: 'contacted' as const, lastContact: '2024-01-18', nextFollowup: '2024-01-22', value: '₹25,000' },
+    { id: 3, name: 'Robert Brown', company: 'Marketing Inc', time: '4:00 PM', agent: 'Sarah Johnson', priority: 'low', email: 'robert@marketing.com', phone: '+1 (555) 345-6789', status: 'qualified' as const, lastContact: '2024-01-19', nextFollowup: '2024-01-25', value: '₹75,000' },
   ];
 
   const overdueFollowups = [
-    { id: 4, name: 'Lisa Garcia', company: 'Retail Plus', daysOverdue: 2, agent: 'Mike Davis', priority: 'high' },
-    { id: 5, name: 'David Lee', company: 'Finance Co', daysOverdue: 1, agent: 'Sarah Johnson', priority: 'medium' },
+    { id: 4, name: 'Lisa Garcia', company: 'Retail Plus', daysOverdue: 2, agent: 'Mike Davis', priority: 'high', email: 'lisa@retailplus.com', phone: '+1 (555) 456-7890', status: 'proposal' as const, lastContact: '2024-01-17', nextFollowup: '2024-01-23', value: '₹100,000' },
+    { id: 5, name: 'David Lee', company: 'Finance Co', daysOverdue: 1, agent: 'Sarah Johnson', priority: 'medium', email: 'david@financeco.com', phone: '+1 (555) 567-8901', status: 'contacted' as const, lastContact: '2024-01-16', nextFollowup: '2024-01-24', value: '₹60,000' },
   ];
 
   const stats = [
@@ -23,6 +44,34 @@ const Dashboard = () => {
     { title: 'Calls Made', value: '23', icon: Phone, change: '+8', color: 'text-green-600' },
     { title: 'Qualified Leads', value: '12', icon: CheckCircle, change: '+5', color: 'text-purple-600' },
   ];
+
+  const handleCall = (followup: any) => {
+    // Convert followup to Lead format for the modal
+    const lead: Lead = {
+      id: followup.id,
+      name: followup.name,
+      email: followup.email,
+      company: followup.company,
+      phone: followup.phone,
+      status: followup.status,
+      agent: followup.agent,
+      lastContact: followup.lastContact,
+      nextFollowup: followup.nextFollowup,
+      priority: followup.priority,
+      value: followup.value,
+      notes: followup.notes
+    };
+    setCallNotesLead(lead);
+  };
+
+  const handleCallNotesSave = (leadId: number, notes: string) => {
+    // In a real app, this would update the backend
+    console.log('Call notes saved for lead:', leadId, notes);
+    toast({
+      title: "Call Notes Saved",
+      description: "Call notes have been saved successfully.",
+    });
+  };
 
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
@@ -77,11 +126,22 @@ const Dashboard = () => {
                     <p className="text-sm text-gray-600">{followup.company}</p>
                     <p className="text-sm text-gray-500">Agent: {followup.agent}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium text-gray-900">{followup.time}</p>
-                    <Badge variant={followup.priority === 'high' ? 'destructive' : followup.priority === 'medium' ? 'default' : 'secondary'}>
-                      {followup.priority}
-                    </Badge>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="font-medium text-gray-900">{followup.time}</p>
+                      <Badge variant={followup.priority === 'high' ? 'destructive' : followup.priority === 'medium' ? 'default' : 'secondary'}>
+                        {followup.priority}
+                      </Badge>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleCall(followup)}
+                      className="ml-2"
+                    >
+                      <Phone className="w-4 h-4 mr-1" />
+                      Call
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -106,11 +166,22 @@ const Dashboard = () => {
                     <p className="text-sm text-gray-600">{followup.company}</p>
                     <p className="text-sm text-gray-500">Agent: {followup.agent}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium text-red-600">{followup.daysOverdue} days overdue</p>
-                    <Badge variant={followup.priority === 'high' ? 'destructive' : 'default'}>
-                      {followup.priority}
-                    </Badge>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="font-medium text-red-600">{followup.daysOverdue} days overdue</p>
+                      <Badge variant={followup.priority === 'high' ? 'destructive' : 'default'}>
+                        {followup.priority}
+                      </Badge>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleCall(followup)}
+                      className="ml-2 border-red-200 hover:bg-red-50"
+                    >
+                      <Phone className="w-4 h-4 mr-1" />
+                      Call
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -118,6 +189,16 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Call Notes Modal */}
+      {callNotesLead && (
+        <CallNotesModal
+          lead={callNotesLead}
+          isOpen={!!callNotesLead}
+          onClose={() => setCallNotesLead(null)}
+          onSave={handleCallNotesSave}
+        />
+      )}
     </div>
   );
 };
