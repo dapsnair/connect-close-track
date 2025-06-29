@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Calendar, Clock, User, MessageSquare, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -51,6 +50,10 @@ const CallNotesModal = ({ lead, isOpen, onClose, onSave }: CallNotesModalProps) 
     onClose();
   };
 
+  const handleStatusChange = (value: string) => {
+    setLeadStatus(value as 'new' | 'contacted' | 'qualified' | 'proposal' | 'closed');
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -72,7 +75,7 @@ const CallNotesModal = ({ lead, isOpen, onClose, onSave }: CallNotesModalProps) 
           {/* Lead Status */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Lead Status</label>
-            <Select value={leadStatus} onValueChange={setLeadStatus}>
+            <Select value={leadStatus} onValueChange={handleStatusChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select lead status" />
               </SelectTrigger>
@@ -160,7 +163,7 @@ const CallNotesModal = ({ lead, isOpen, onClose, onSave }: CallNotesModalProps) 
             </div>
           </div>
 
-          {/* Previous Call Notes */}
+          {/* Previous Call History */}
           <div className="space-y-3 pt-4 border-t">
             <h3 className="font-medium text-gray-900 flex items-center gap-2">
               <MessageSquare className="w-4 h-4" />
