@@ -27,7 +27,7 @@ interface CallNotesModalProps {
   lead: Lead;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (leadId: number, notes: string, nextFollowupDate?: string) => void;
+  onSave: (leadId: number, notes: string, nextFollowupDate?: string, status?: string) => void;
 }
 
 const CallNotesModal = ({ lead, isOpen, onClose, onSave }: CallNotesModalProps) => {
@@ -36,6 +36,7 @@ const CallNotesModal = ({ lead, isOpen, onClose, onSave }: CallNotesModalProps) 
   const [followUpTime, setFollowUpTime] = useState('');
   const [callOutcome, setCallOutcome] = useState('');
   const [nextAction, setNextAction] = useState('');
+  const [leadStatus, setLeadStatus] = useState(lead.status);
 
   const handleSave = () => {
     console.log('Saving call notes:', {
@@ -43,9 +44,10 @@ const CallNotesModal = ({ lead, isOpen, onClose, onSave }: CallNotesModalProps) 
       followUpDate,
       followUpTime,
       callOutcome,
-      nextAction
+      nextAction,
+      leadStatus
     });
-    onSave(lead.id, callNotes, followUpDate);
+    onSave(lead.id, callNotes, followUpDate, leadStatus);
     onClose();
   };
 
@@ -67,6 +69,23 @@ const CallNotesModal = ({ lead, isOpen, onClose, onSave }: CallNotesModalProps) 
         </CardHeader>
         
         <CardContent className="space-y-6">
+          {/* Lead Status */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Lead Status</label>
+            <Select value={leadStatus} onValueChange={setLeadStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select lead status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="new">New</SelectItem>
+                <SelectItem value="contacted">Contacted</SelectItem>
+                <SelectItem value="qualified">Qualified</SelectItem>
+                <SelectItem value="proposal">Proposal</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Call Outcome */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Call Outcome</label>

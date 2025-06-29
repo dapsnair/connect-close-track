@@ -159,15 +159,16 @@ const Dashboard = () => {
     };
     setCallNotesLead(lead);
   };
-  const handleCallNotesSave = (leadId: number, notes: string, nextFollowupDate?: string) => {
-    console.log('Call notes saved for lead:', leadId, notes, 'Next followup:', nextFollowupDate);
+  const handleCallNotesSave = (leadId: number, notes: string, nextFollowupDate?: string, status?: string) => {
+    console.log('Call notes saved for lead:', leadId, notes, 'Next followup:', nextFollowupDate, 'Status:', status);
 
-    // Update the lead with new follow-up date if provided and increment calls made
+    // Update the lead with new follow-up date, status if provided, and increment calls made
     setAllLeads(prevLeads => prevLeads.map(lead => {
       if (lead.id === leadId) {
         return {
           ...lead,
           nextFollowup: nextFollowupDate || lead.nextFollowup,
+          status: (status as 'new' | 'contacted' | 'qualified' | 'proposal' | 'closed') || lead.status,
           lastContact: today,
           notes: notes,
           callsMade: (lead.callsMade || 0) + 1
